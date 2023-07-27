@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -87,10 +88,10 @@ func main() {
 			syscall.SIGILL,  // illegal instruction
 			syscall.SIGFPE)  // floating point
 		sig := <-c
-		fmt.Println("-----------------------------------------")
-		fmt.Printf("Signal (%v) Detected, Shutting Down\n", sig)
-		fmt.Println("Final Memory usage when killed:")
-		fmt.Println(ReturnMemUsage())
+		log.Println("-----------------------------------------")
+		log.Printf("Signal (%v) Detected, Shutting Down\n", sig)
+		log.Println("Final Memory usage when killed:")
+		log.Println(ReturnMemUsage())
 		os.Exit(1)
 	}()
 
@@ -98,8 +99,8 @@ func main() {
 	http.HandleFunc("/consumemem", ConsumeMemory)
 	http.HandleFunc("/clearmem", ClearMemory)
 	http.Handle("/metrics", promhttp.HandlerFor(r, promhttp.HandlerOpts{}))
-	fmt.Printf("Listening on port: %v", *listenPort)
-	http.ListenAndServe(*listenPort, nil)
+	log.Printf("Listening on port: %v", *listenPort)
+	log.Fatal(http.ListenAndServe(*listenPort, nil))
 
 }
 
@@ -129,7 +130,11 @@ func AllocateMemory() {
 			// garbage collected). This is to create an ever increasing memory usage
 			// which we can track. We're just using []int as an example.
 			a := make([]byte, 1048576)
-			rand.Read(a)
+			_, err := rand.Read(a)
+			if err != nil {
+				fmt.Println("Error getting random data.")
+				return
+			}
 			//for j := 0; j < 1024; j++ {
 			overall = append(overall, a)
 			//}
@@ -165,6 +170,6 @@ func ClearMemory(w http.ResponseWriter, r *http.Request) {
 	runtime.GC()
 	debug.FreeOSMemory()
 	message := fmt.Sprintf("Memory has been cleared.\n %v", ReturnMemUsage())
-	fmt.Fprintf(w, message)
+	fmt.Fprint(w, message)
 
 }
