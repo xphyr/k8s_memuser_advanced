@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/carlmjohnson/versioninfo"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -25,12 +26,11 @@ var (
 	maxMem     *int
 	listenPort *string
 
-	appVersion string
-	version    = prometheus.NewGauge(prometheus.GaugeOpts{
+	version = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "version",
 		Help: "Version information about this binary",
 		ConstLabels: map[string]string{
-			"version": appVersion,
+			"version": versioninfo.Version,
 		},
 	})
 

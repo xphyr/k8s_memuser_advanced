@@ -2,7 +2,10 @@ module github.com/xphyr/k8s_memuser_advanced
 
 go 1.20
 
-require github.com/prometheus/client_golang v1.16.0
+require (
+	github.com/carlmjohnson/versioninfo v0.22.4
+	github.com/prometheus/client_golang v1.16.0
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
