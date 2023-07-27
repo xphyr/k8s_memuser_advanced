@@ -1,0 +1,19 @@
+##
+## Build phase for Windows
+##
+FROM golang:nanoserver as gobuild
+COPY . /code
+WORKDIR /code
+RUN go build -o memuser.exe
+
+##
+## Deploy using smallest Windows Container Image
+##
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2022
+
+RUN mkdir c:\apps
+
+COPY --from=gobuild /code/memuser.exe /apps/memuser.exe
+EXPOSE 8080
+# Sets a command or process that will run each time a container is run from the new image.
+CMD [ "c:/apps/memuser.exe" ]
