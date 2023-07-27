@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -71,7 +72,7 @@ func main() {
 	r.MustRegister(httpRequestDuration)
 	r.MustRegister(version)
 	r.MustRegister(opsProcessed)
-	r.MustRegister(prometheus.NewGoCollector())
+	r.MustRegister(collectors.NewGoCollector())
 
 	recordMetrics()
 
@@ -138,14 +139,14 @@ func AllocateMemory() {
 			}
 		}
 	}
-	fmt.Printf(ReturnMemUsage())
+	fmt.Println(ReturnMemUsage())
 }
 
 // HelloServer will return a hello world, and will consume some more memory in the process
 func HelloServer(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("Hello User. My current memory usage is:\n %v", ReturnMemUsage())
 
-	fmt.Fprintf(w, message)
+	fmt.Fprint(w, message)
 
 }
 
@@ -154,7 +155,7 @@ func ConsumeMemory(w http.ResponseWriter, r *http.Request) {
 	AllocateMemory()
 	message := fmt.Sprintf("Hello User. My current memory usage is:\n %v", ReturnMemUsage())
 
-	fmt.Fprintf(w, message)
+	fmt.Fprint(w, message)
 
 }
 
