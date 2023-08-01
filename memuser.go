@@ -22,7 +22,6 @@ import (
 var (
 	overall    [][]byte
 	memPtr     *int
-	holdPtr    *bool
 	fastPtr    *bool
 	maxMem     *int
 	listenPort *string
@@ -65,7 +64,6 @@ func main() {
 	memPtr = flag.Int("memory", 50, "how much memory to consume")
 	maxMem = flag.Int("maxmemory", 1000, "dont consume more than this")
 	fastPtr = flag.Bool("fast", true, "build up memory usage quickly")
-	holdPtr = flag.Bool("hold", false, "once memory is in use dont quit hold onto it")
 	listenPort = flag.String("listen", ":8080", "port to listen on")
 
 	flag.Parse()
