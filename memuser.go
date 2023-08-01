@@ -22,6 +22,7 @@ import (
 var (
 	overall    [][]byte
 	memPtr     *int
+	holdPtr    *bool
 	fastPtr    *bool
 	maxMem     *int
 	listenPort *string
@@ -37,7 +38,7 @@ var (
 	httpRequestsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "http_requests_total",
 		Help: "Count of all HTTP requests",
-	}, []string{"code", "method"})
+	}, []string{"function"})
 
 	httpRequestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "http_request_duration_seconds",
@@ -64,6 +65,7 @@ func main() {
 	memPtr = flag.Int("memory", 50, "how much memory to consume")
 	maxMem = flag.Int("maxmemory", 1000, "dont consume more than this")
 	fastPtr = flag.Bool("fast", true, "build up memory usage quickly")
+	holdPtr = flag.Bool("hold", false, "once memory is in use dont quit hold onto it")
 	listenPort = flag.String("listen", ":8080", "port to listen on")
 
 	flag.Parse()
@@ -108,9 +110,7 @@ func main() {
 func ReturnMemUsage() string {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-
 	return fmt.Sprintf("Alloc = %v MiB\tSys = %v MiB\tNumGC = %v\n", bToMb(m.Alloc), bToMb(m.Sys), m.NumGC)
-
 }
 
 func bToMb(b uint64) uint64 {
@@ -150,16 +150,15 @@ func AllocateMemory() {
 // HelloServer will return a hello world, and will consume some more memory in the process
 func HelloServer(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("Hello User. My current memory usage is:\n %v", ReturnMemUsage())
-
+	httpRequestsTotal.With(prometheus.Labels{"function": "HelloServer"}).Inc()
 	fmt.Fprint(w, message)
-
 }
 
 // ConsumeMemory will return a hello world, and will consume some more memory in the process
 func ConsumeMemory(w http.ResponseWriter, r *http.Request) {
 	AllocateMemory()
 	message := fmt.Sprintf("Hello User. My current memory usage is:\n %v", ReturnMemUsage())
-
+	httpRequestsTotal.With(prometheus.Labels{"function": "ConsumeMemory"}).Inc()
 	fmt.Fprint(w, message)
 
 }
@@ -170,6 +169,7 @@ func ClearMemory(w http.ResponseWriter, r *http.Request) {
 	runtime.GC()
 	debug.FreeOSMemory()
 	message := fmt.Sprintf("Memory has been cleared.\n %v", ReturnMemUsage())
+	httpRequestsTotal.With(prometheus.Labels{"function": "ClearMemory"}).Inc()
 	fmt.Fprint(w, message)
 
 }
