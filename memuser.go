@@ -30,7 +30,7 @@ var (
 		Name: "version",
 		Help: "Version information about this binary",
 		ConstLabels: map[string]string{
-			"version": versioninfo.Version,
+			"version": versioninfo.Revision,
 		},
 	})
 
@@ -65,6 +65,7 @@ func main() {
 	maxMem = flag.Int("maxmemory", 1000, "dont consume more than this")
 	fastPtr = flag.Bool("fast", true, "build up memory usage quickly")
 	listenPort = flag.String("listen", ":8080", "port to listen on")
+	versioninfo.AddFlag(nil)
 
 	flag.Parse()
 
@@ -99,6 +100,7 @@ func main() {
 	http.HandleFunc("/consumemem", ConsumeMemory)
 	http.HandleFunc("/clearmem", ClearMemory)
 	http.Handle("/metrics", promhttp.HandlerFor(r, promhttp.HandlerOpts{}))
+	log.Printf("Starting k8s_memuser_advanced revision: %v", versioninfo.Short())
 	log.Printf("Listening on port: %v", *listenPort)
 	log.Fatal(http.ListenAndServe(*listenPort, nil))
 
@@ -121,7 +123,7 @@ func AllocateMemory() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
-	if bToMb(m.Alloc) <= uint64(*maxMem) {
+	if bToMb(m.Alloc) < uint64(*maxMem) {
 		for i := 0; i < *memPtr; i++ {
 
 			// Allocate memory using make() and append to overall (so it doesn't get
