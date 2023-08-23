@@ -48,12 +48,18 @@ var (
 		Name: "myapp_processed_ops_total",
 		Help: "The total number of simulated processed ops.",
 	})
+
+	capName = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "CAP_MYAPP_PROCESSED",
+		Help: "The total number of simulated processed ops in CAPS",
+	})
 )
 
 func recordMetrics() {
 	go func() {
 		for {
 			opsProcessed.Inc()
+			capName.Inc()
 			time.Sleep(2 * time.Second)
 		}
 	}()
@@ -74,6 +80,7 @@ func main() {
 	r.MustRegister(httpRequestDuration)
 	r.MustRegister(version)
 	r.MustRegister(opsProcessed)
+	r.MustRegister(capName)
 	r.MustRegister(collectors.NewGoCollector())
 
 	recordMetrics()
